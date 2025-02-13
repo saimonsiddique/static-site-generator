@@ -3,16 +3,16 @@ from enum import Enum
 from leafnode import LeafNode
 
 class TextType(Enum):
-    NORMAL = 1
-    BOLD = 2
-    ITALIC = 3
-    CODE = 4
-    LINKS = 5
-    IMAGES = 6
+    TEXT = "text"
+    BOLD = "bold"
+    ITALIC = "italic"
+    CODE = "code"
+    LINK = "link"
+    IMAGE = "image"
 
 
 class TextNode:
-    def __init__(self, text, text_type, url):
+    def __init__(self, text, text_type, url=None):
         self.text = text
         self.text_type = text_type
         self.url = url
@@ -28,7 +28,7 @@ class TextNode:
     
     def text_node_to_htm_node(self):
         match self.text_type:
-            case TextType.NORMAL:
+            case TextType.TEXT:
                 return LeafNode(value=self.text)
             case TextType.BOLD:
                 return LeafNode(tag='b', value=self.text)
