@@ -81,6 +81,43 @@ def split_nodes_link(old_nodes):
             new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes
 
+def text_to_textnodes(text):
+    new_text_nodes = []
+    original_text = text
+    images = extract_markdown_images(original_text)
+    links = extract_markdown_links(original_text)
+    if len(images) == 0 and len(links) == 0:
+        new_text_nodes.append(TextNode(original_text, TextType.TEXT))
+        return new_text_nodes
+    for image in images:
+        sections = original_text.split(f"![{image[0]}]({image[1]})", 1)
+        if len(sections) != 2:
+            raise ValueError("invalid markdown, image section not closed")
+        if sections[0] != "":
+            new_text_nodes.append(TextNode(sections[0], TextType.TEXT))
+        new_text_nodes.append(TextNode(image[0], TextType.IMAGE, image[1]))
+        original_text = sections[1]
+    for link in links:
+        sections = original_text.split(f"[{link[0]}]({link[1]})", 1)
+        if len(sections) != 2:
+            raise ValueError("invalid markdown, link section not closed")
+        if sections[0] != "":
+            new_text_nodes.append(TextNode(sections[0], TextType.TEXT))
+        new_text_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
+        original_text = sections[1]
+    if original_text != "":
+        new_text_nodes.append(TextNode(original_text, TextType.TEXT))
+    
+    if len(new_text_nodes) != 0:
+      bold_text =  split_nodes_delimiter(new_text_nodes, "**", TextType.BOLD)
+      italic_text =  split_nodes_delimiter(new_text_nodes, "*", TextType.ITALIC)
+      code_text = split_nodes_delimiter(new_text_nodes, "`", TextType.CODE)
+      link_text = split_nodes_link(new_text_nodes)
+      image_text = split_nodes_image(new_text_nodes)
+      new_text_nodes = bold_text + italic_text + code_text + link_text + image_text
+
+    return new_text_nodes
+       
 
 if __name__ == "__main__":
   # node = TextNode("This is text with a **bolded** word and **another**", TextType.TEXT)
@@ -95,9 +132,12 @@ if __name__ == "__main__":
   # print(extract_markdown_images(text2))
   # [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
 
-  node2 =  TextNode(
-    "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-    TextType.TEXT,
-  )
+  # node2 =  TextNode(
+  #   "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+  #   TextType.TEXT,
+  # )
 
-  print(split_nodes_link([node2]))
+  # print(split_nodes_link([node2]))
+
+  text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+  print(text_to_textnodes(text))
